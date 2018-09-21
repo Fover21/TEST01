@@ -1,1 +1,2 @@
-first 
+id	created	uuid	entity_status	title	desc
+1	2018-01-03	72606337-2574-4842-a303-92533ca7e63a	1	输入任意一个华氏温度值，然后将其转换成摄氏温度输出。算法：c = 5 / 9 (f - 32)	
