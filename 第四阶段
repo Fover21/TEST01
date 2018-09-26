@@ -1,0 +1,286 @@
+
+一、
+
+1、互联网两台机器之间通行：ip、端口、协议
+	- 协议
+		- HTTP  （80）
+		- HTTPS  (443) 
+
+2、浏览器输入URL一回车返回页面发生了什么？
+	- 域名 -> DNS解析 -->ip地址 -> 找到服务端 ->服务端返回消息 -> 浏览器
+	- 浏览器 <-> 服务器
+	- 服务器把 写好的HTML页面，返回给浏览器，浏览器按照HTML格式渲染
+	「
+
+	」
+
+3、请求和相应
+	- HTTP协议的特点：
+		- 浏览器给服务端发消息的过程叫请求（request）
+		- 服务器给浏览器回复消息的过程叫响应（response）
+		
+	- 请求和相应的消息都必须遵循一个固定的格式
+
+4、python中Web框架分类
+	- a、收发socket消息，按照HTTP协议解析消息   Web服务程序 wsgiref、gunicorn、uWSGI
+	- b、字符串替换，用来实现动态网页								
+	- c、业务逻辑处理							Web应用程序
+
+	1- 自己实现abc的
+		- Tronado  
+	2- 自己实现bc使用别人的a
+		- Django
+	3- 自己实现c使用别人的ab
+		- Flask
+5、Web服务程序  <-  WSGI协议  -> Web应用程序
+
+
+5.5、Django版本
+	- LTS版本 （Long Team support）
+
+6、创建第一个Django项目
+	
+	安装：  pip install django==1.11.11
+			pip install django==1.11.11 -i 指定源 
+
+	- 1、命令行  Django-admin startproject first_Django
+	- 2、Pycharm创建
+		- file -> new Project ->右侧选Django -> 选好路径 ->选好环境 -> 名字app -> 在新的窗口打开文件
+	- 3、启动项目
+		- 命令行启动(切换到项目的根目录)
+			- python manage.py runserver 127.0.0.1:8090(改端口这样指定)
+		- pycharm启动
+			- 框中选项为项目名->让后点击启动按钮（右上角）（如果想改就在旁边点编辑-就可以改端口等）
+
+	- 目录介绍
+		- 和项目名一样的是根目录
+		- 
+	---------------------
+	- 先来一份自己的理解
+		- 1、（与我们所创建文件名一致的目录）根目录
+			- manage.py 
+				- 这是启动文件，程序入口。
+			- settings.py
+				- 包含了项目的一些设置，包括数据库信息、调试标志以及其他的一些工作的变量。
+				- BASE_DIR = 项目的根目录
+				- TIMELATES = templates去哪找
+				- DATABASES = 数据库
+				- 静态文件配置
+					- STATIC_URL = '/static/' # 请别名
+					- STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),] # 配置去static下找静态文件
+			- urls.py
+				- 路径与视图函数的映射关系
+
+
+		- 2、templates - 这个文件夹存放的是HTML文件
+		- 3、static - 这个文件夹是存放静态文件，需要自己配置，用的时候的导入时用 
+		     /static/.. 来引入所用的静态文件
+		     	# Static files (CSS, JavaScript, Images)
+				# https://docs.djangoproject.com/en/1.11/howto/static-files/
+
+				# 这个static就代表了下面的路径 （寻找的时候就是去static下面的路径中挨个找）
+				STATIC_URL = '/static/'  # 起别名， HTML中找静态文件都要以这个别名开始  (找到别名后就去这个别名的配置比文件中找对应的文件)
+
+				# 这个常量是固定格式
+				STATICFILES_DIRS = [
+				    os.path.join(BASE_DIR, 'static'),
+				]
+	
+7、项目流程
+	- 先输入url
+	- 去Django的urls中匹配urlpatterns->匹配上调用后面匹配的函数->去找对应的函数
+	- 找到执行的函数->Django调用要执行的函数给函数传一个request参数，所有和请求相关的数据 都在request中
+	- render去templates文件夹找到HTML文件，打开读取内容，按照http响应格式给浏览器返回读取的内容
+	- 浏览器收到Django返回的响应消息，按照HTML格式显示这个消息
+
+
+
+其他：
+	- from django.shortcuts import HttpResponse, render
+		- HttpResponse (封装了协议头等-有待商议)
+		- render （渲染）
+
+	- 文件的上传（form表单的提交， 必须用POST）
+		def index(request):
+		    print(request.GET)
+		    print(request.POST)
+		    print(request.FILES)
+
+		    for item in request.FILES:
+		        fileobj = request.FILES.get(item)
+		        f = open('upload/%s' % fileobj.name, 'wb')
+		        item_file = fileobj.chunks()
+		        for line in item_file:
+		            f.write(line)
+		        f.close()
+
+		    return HttpResponse("成功")
+ 	- form表单上传文件时需要注意的事情
+ 		- action 最后加 /  或者 修改settings:APPEND_SLASH=False
+ 		- method 必须为post 
+ 		- enctype = “multipart/form-data” 必须写
+
+ 	- 指定IP登录
+ 		默认IP和端口
+		    python manage.py runserver
+		指定端口：
+		    python manage.py runserver 192.168.12.12:8080
+		此时会报错，我们需要修改配置文件：
+		修改settings.py，将192.168.12.12添加到ALLOWED_HOSTS中
+		ALLOWED_HOSTS=['172.31.169.182','127.0.0.1','192.168.1.50','192.168.1.115']
+		也可以将ALLOWED_HOSTS改成通配符 *
+		ALLOWED_HOSTS = ["*"]
+
+
+
+二、
+
+1、表单的提交（登录）
+	- submit -> action -> 对应函数（参数request（数据信息））-> 处理
+		注意：必须要有name属性 *****
+	- 提交到服务器的是QueryDict对象，可以通过get获取值
+
+
+2、form表单提交的三个要素
+	- form标签必须有action和method属性
+	- 所有获取用户输入的标签必须放在form表单中，必须有name属性
+	- 必须有submit按钮
+
+
+3、redirect 跳转,改变方向
+	- 跳转到别人的页面，自己的页面
+		- 跳转比人页面
+			redirect("https://baidu.com")
+		- 跳转自己页面
+			redirect("/相对路径/")
+
+4、Django必会三件套  from django.shortcuts import
+	- HttpRequest	返回一个指定的字符串
+	- render   		返回一个HTML文件		HTML文件 模板语言
+	- redirect		跳转   				路径     URL
+
+
+5、request相关属性
+	- POST
+	- GET
+	- method
+
+6、Django的模板语言
+	{{ 变量 }}
+
+7、Django项目project
+	- app（应用） -> 不同的功能放在不同的app中
+		- 命令 ：
+			- 创建app  
+				python manage.py startapp app01(应用名)	
+			- 告诉Django创建了app
+				在settings中的 INSTALLED_APPS 添加新创建的app（app名.apps.apps中的类）
+
+
+8、程序链接mysql
+	- 使用pymysql模块
+		- 导入pymysql
+		- 创建链接
+		- 获取执行命令的游标
+		- 用游标执行SQL语句
+		- 获取SQL语句的执行结果
+		- 关闭游标
+		- 关闭链接
+
+	- ORM - Object Relationship Mapping （对象关系映射）
+	- 这时，创建一种工具 帮助我们翻译SQL语句（ORM - 面向对象的思想）
+		- 优点
+			- 开发效率高
+			- 开发不用直接写SQL语句
+		- 缺点
+			- 执行效率低
+
+	ORM 		DB
+
+	类			数据表
+	属性			字段
+	对象			数据行
+
+
+
+
+
+	- Django项目project
+		- app（应用） -> 不同的功能放在不同的app中
+			- 命令 ：
+				- 创建app  
+					python manage.py startapp app01(应用名)	
+				- 告诉Django创建了app
+					在settings中的 INSTALLED_APPS 添加新创建的app（app名.apps.apps中的类）
+	- Django中ORM使用
+		- 用处：
+			- 操作数据表
+			- 操作数据行
+		- 使用
+			- 手动创建数据库
+			- 告诉Django连那个数据库
+				- settings中配置DATABASES
+				DATABASES = {
+				    'default': {
+				        'ENGINE': 'django.db.backends.mysql',  # 链接数据库的类型
+				        'NAME': 'db',  # 链接数据库的名字
+				        'HOST': '127.0.0.1',  # 数据库主机地址
+				        'PORT': 3306,  # 数据库端口
+				        'USER': 'root',  # 数据库用户名
+				        'PASSWORD': '123456',  # 数据库密码
+				    }
+				}
+
+			- 用什么链接数据库？
+				- 利用第三方包 pymysql 和 MySQLdb(py2中)
+				- 告诉Django用pymysql模块代替默认的MySQLdb链接MySQL数据库
+					和settings.py同级的__init__.py文件，写上
+					import pymysql
+					pymysql.install_as_MySQLdb()
+
+			- 在app/models.py的文件中创建类
+				类必须继承models.Model
+
+			- 两个命令
+				- python manage.py makemigrations -> 相当于拿个小本本把models.py的变更记录下来
+				- python manage.py migrate -> 把上面的变更记录翻译成sql语句，去数据库执行
+
+			- ORM查询
+				User.object.filter(email='', pwd='')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
