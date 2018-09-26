@@ -246,7 +246,7 @@
 				- python manage.py migrate -> 把上面的变更记录翻译成sql语句，去数据库执行
 
 			- ORM查询
-				modules.User.object.filter(email='', pwd='')
+				modulesUser.object.filter(email='', pwd='')
 
 
 
