@@ -242,11 +242,11 @@
 				类必须继承models.Model
 
 			- 两个命令
-				- python manage.py makemigrations -> 相当于拿个小本本把models.py的变更记录下来
+				- python manage.py makemigrations -> 生成脚本文件存放在app文件夹应用下的migrations文件夹中（相当于拿个小本本把models.py的变更记录下来）
 				- python manage.py migrate -> 把上面的变更记录翻译成sql语句，去数据库执行
 
 			- ORM查询
-				User.object.filter(email='', pwd='')
+				modules.User.object.filter(email='', pwd='')
 
 
 
