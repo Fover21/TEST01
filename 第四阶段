@@ -284,9 +284,135 @@
 		{% endfor %}
 
 
+总结：ORM的 查、增、删、改
+
+	- 查
+		- client
+			- 有一个展示页面（xxx_show.html）
+				- 这一个页面一输入执行后，get请求向server端发送
+			- 这个展示页面有添加按钮、删除按钮、编辑按钮
+			- 这个页面要展示内容
+				- 是server端收到第一次的get请求而做出的response
+				- 页面需要用到模板语言for循环
+					{% for i in result %}
+						{{ i.xx }}  #获取result中的每个值（也就是server端传来的东西） 
+					{% endfor %}
+		- server
+			- 首先会收到一开始访问页面的GET请求
+			- 收到请求后到urls中找匹配的url，找到对应的url后，执行后面所对应的视图函数
+			- 找到对应的视图函数后就行执行响应的逻辑，也就是拿出数据库中的东西，发送给server
+				- 可以通过 models.表名.objects.all() 获取数据库这张表中的所有内容（返回一个列表）
+					- data = models.表名.objects.all()
+				- 拿到数据后将这些数据给展示（通过render方法）
+					- return render(request, 'xxx_show.html', 'result':data)
+					 #这里的result就是要传给xxx_show.html的一个变量（其中的值就是data的数据）
+
+	- 增
+		- client
+			- 有一个展示页面（xxx_show.html）
+			- 这个页面有一个添加按钮（a标签）
+				- 点击这个按钮（a标签），client会发送一个get请求，会用a标签的路径去访问server
+				- 这时会跳转到a标签所指的url(/add_xxx/)
+				- 然后server给出response（这里的业务逻辑就都得在server）
+			- 第一次get请求server会返回一个add_xxx.html页面
+				- 这是可以添加数据
+					- 用form表单，action为add_xxx这个url，method为post
+					- 点击提交之后client向server发送一个请求
+					- server收到请求后回复一个response
+
+		- server
+			- 收到a标签跳转的url（get请求响应）
+			- 收到add_xxx这个url进入urls中匹配，匹配到就去他对应的视图函数
+			- 这个视图函数处理响应的业务逻辑
+				- 首先第一次来的时候时GET请求，这个时候应该将add_xxx.html这个页面返回给client
+					- return render(request, add_xxx.html)
+				- 然后server收到提交的POST请求
+					- 从POST请求中拿出client发送来的数据
+						- data = request.POST.get("input标签的name")
+					- 将数据存入数据库
+						- models.tablename.objects.create(字段=data)
+					- 将数据库中的结果重新返回（也就是xxx_show。html）
+						- return redirect('/xxx_show/')
+
+	- 删
+		- client
+			- 有一个展示页面（xxx_show.html）
+			- 有一个删除按钮（a标签）
+				- 点击这个按钮（a标签），client会发送一个get请求，会用a标签的路径去访问server
+				- 点击这个a标签（按钮）会跳转到他对应的url('/del_xxx/')
+					- 这时需要将这个按钮对应的数据传到server，server才能按照这个数据去删除
+					- <a href="/del_xxx/?id={{ i.id }}"><button>del</button></a>
+						- ?是一个固定格式，而后面就是一些参数（服务端要用的一些参数）
+						- server收到这个参数后就可以按照他进行相应的操作
+				- 然后server会返回一个response（这里的业务逻辑在server端）
+
+		- server
+			- 收到a标签跳转的url（get请求响应）
+			- 收到del_xxx这个url进入urls中匹配，匹配到就去他对应的视图函数
+			- 这个视图函数处理响应的业务逻辑
+				- 通过client传来的参数来锁定删除的id
+					- del_id = request.GET.get("id")
+				- 删除数据库中del_id对应的值
+					- models.tablename.objects.fileter(id=del_id).delete()
+				- 删除成功后返回删除后的页面（'/xxx_show/'）(重定性)
+					- return redirect('/xxx_show/')
+
+	- 改
+		- client
+			- 有一个展示页面（xxx_show.html）
+			- 有一个删除按钮（a标签）
+				- 点击这个按钮（a标签），client会发送一个get请求，会用a标签的路径去访问server
+				- 点击这个a标签（按钮）会跳转到他对应的url('/edit_xxx/')
+					- 这时需要将这个按钮对应的数据传到server，server才能更改这个数据
+					- <a href="/edit_xxx/?id={{ i.id }}"><button>del</button></a>
+						- ?是一个固定格式，而后面就是一些参数（服务端要用的一些参数）
+						- server收到这个参数后就可以按照他进行相应的操作
+				- 然后server会返回一个response（这里的业务逻辑在server端）
+			- 第一次发送get请求时会跳转到edit_xxx.html这个页面，这里面是该行对应的数据
+			- 第二次发送post请求，这里面会有修改后的数据然后发送给server处理
+				- 	<form action="/edit_press/?id={{ result.id }}" method="post">
+        				<input type="text" name="updata_name" value="{{ result.name }}">
+        				<input type="submit">
+    				</form>
+
+    				- input中的数据都是在server查出的数据展现出来的
+    				- id是通过点击edit按钮的时候将这个按钮对应的id值记录了下来
+
+				- 处理完后返回原来的xxx_show
 
 
+		- server
+			- 收到a标签跳转的url（get请求响应）
+			- 收到edit_xxx这个url进入urls中匹配，匹配到就去他对应的视图函数
+			- 这个视图函数处理响应的业务逻辑
+				- 第一遍的GET请求
+					- 通过client传来的参数来锁定编辑（edit）的id
+						- edit_id = request.GET.get("id")
+					- 会返回当前编辑行的内容
+						- 从数据库中拿出这个值，将这个值展现在edit_xxx.html页面中
+							- result = models.tablename.objects.filter(id="")[0]
+					- 返回当前编辑的页面
+						- return render(request, 'edit_xxx.html', {'resule': result})
 
+				- 第二遍请求是提交数据后的POST请求，
+					- form表单中的action为这个编辑页面，
+					- 这个页面后面的参数为第一次get请求得到的数据
+					- 也就是可以得到这个行的id（可以一起使用）一一对应的
+
+					- 这个时候form表单对应的url来urls中找对应的视图函数
+						- 这个视图函数就会执行POST请求的逻辑
+						- 用这个新数据把数据库中的旧数据掩盖
+							- 获取更改后的值
+								- data = request.POST.get("updata_name")
+							- 更改数据库中的值
+								- 从数据库找到id对应的对象
+								- #这里的id就是第一次点击编辑的时候得到的id值（--对应的）
+								- new_obj = models.tablename.objects.filter(id='edit_id')[0]
+								- new_obj.name = data  #将新的值赋值给数据库中的变量
+								- new_obj.save()  #这个事务必须save数据库中的数据才会更改
+
+							- 更改完成后返回，xxx_show页面
+								- return redirect('/xxx_show/')
 
 
 
