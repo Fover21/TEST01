@@ -541,7 +541,9 @@ class Book(models.Model):
 			author_obj.books        --> 得到的只是一个关联关系，并不能拿到数据
 			author_obj.books.all()  --> 得到和我这个作者关联的所有书籍对象列表
 		2. 添加
-			1. add()
+			1. getlist() # 得到同一name的列表对象
+			2. add()
+			3. set()
 			
 		3. 删除
 		
@@ -570,11 +572,9 @@ class Book(models.Model):
 		form表单上传文件
 		# 文件的上传
 		def index(request):
-		    print(request.GET)
-		    print(request.POST)
-		    print(request.FILES)
+		    print(request.FILES)  # 上传的文件列表对象
 		    for item in request.FILES:
-		        fileobj = request.FILES.get(item)
+		        fileobj = request.FILES.get(item)  # 挨个获取列表中每个对象
 		        f = open('upload/%s' % fileobj.name, 'wb')
 		        item_file = fileobj.chunks()
 		        for line in item_file:

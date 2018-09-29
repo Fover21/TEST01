@@ -32,3 +32,190 @@ Django版1.11
 		-> 将处理完的页面先发给
 		-> wsgiref模块封装
 		-> 封装完成后将返回的HTML页面在浏览器展示
+
+	- MVC是众所周知的模式，即：将应用程序分解成三个组成部分:model(模型),view(视图),和
+	  controller(控制 器)。其中：
+     	M——管理应用程序的状态（通常存储到数据库中），并约束改变状态的行为（或者叫做“业务规则”）。
+      	C——接受外部用户的操作，根据操作访问模型获取数据，并调用“视图”显示这些数据。控制器是将“模型”和“视图”隔离，并成为二者之间的联系纽带。
+      	V——负责把数据格式化后呈现给用户。
+
+	- Django也是一个MVC框架。但是在Django中，控制器接受用户输入的部分由框架自行处理，所以 
+	Django 里更关注的是模型（Model）、模板(Template)和视图（Views），称为 MTV模式：
+
+    	- M 代表模型（Model），即数据存取层。 该层处理与数据相关的所有事务： 如何存取、如何验证有效性、包含哪些行为以及数据之间的关系等。
+    	- T 代表模板(Template)，即表现层。 该层处理与表现相关的决定： 如何在页面或其他类型文档中进行显示。
+    	- V 代表视图（View），即业务逻辑层。 该层包含存取模型及调取恰当模板的相关逻辑。 你可以把它看作模型与模板之间的桥梁。
+
+二、Django基本配置
+	- 创建Django程序
+		终端命令：django-admin startproject projectname  (在当前目录下创建一个Django程序)
+		IDE创建Django程序时，本质上都是自动执行上述命令
+		其他常用命令：
+
+		　　python manage.py runserver ip:port  (启动服务器，默认ip和端口为http://127.0.0.1:8000/)
+
+		　　python manage.py startapp appname  (新建 app)
+
+		　　python manage.py syncdb  (同步数据库命令，Django 1.7及以上版本需要用以下的命令）
+
+		　　python manage.py makemigrations  (显示并记录所有数据的改动)
+
+		　　python manage.py migrate  (将改动更新到数据库)
+
+		　　python manage.py createsuperuser  (创建超级管理员)
+
+		　　python manage.py dbshell  (数据库命令行)
+
+		　　python manage.py  (查看命令列表)
+
+	- 配置文件
+		- 数据库
+			支持SQLite 3（默认）、PostgreSQL 、MySQL、Oracle数据库的操作
+
+			- 具体配置
+				# 默认是SQLit 3 的配置
+				DATABASES = {
+				    'default': {
+				        'ENGINE': 'django.db.backends.sqlite3',
+				        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+				    }
+				}
+
+
+				# MySQL的配置
+				DATABASES = {
+				    'default': {
+				    'ENGINE': 'django.db.backends.mysql',
+				    'NAME':'dbname',   #注意这里的数据库应该以utf-8编码
+				    'USER': 'xxx',
+				    'PASSWORD': 'xxx',
+				    'HOST': '',
+				    'PORT': '',
+				    }
+				}
+
+				# 对于python3的使用者们还需要再加一步操作
+				# 由于Django内部连接MySQL时使用的是MySQLdb模块，而python3中还无此模块，所以需要使用pymysql来代替
+				  
+				# 如下设置放置的与project同名的配置的 __init__.py文件中
+				  
+				import pymysql
+				pymysql.install_as_MySQLdb()
+
+
+				# PostgreSQL配置
+				DATABASES = {
+				    'default': {
+				        'NAME': 'app_data',
+				        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+				        'USER': 'XXX',
+				        'PASSWORD': 'XXX'
+				    }
+
+
+				# Oracle配置
+				DATABASES = {
+				    'default': {
+				        'ENGINE': 'django.db.backends.oracle',
+				        'NAME': 'xe',
+				        'USER': 'a_user',
+				        'PASSWORD': 'a_password',
+				        'HOST': '',
+				        'PORT': '',
+				    }
+				}
+
+				Django框架对于开发者而言高度透明化，对于不同数据库的具体使用方法是一致的，改变数据库类型只需要变动上述配置即可。
+
+		- 静态文件添加
+			- settings配置
+				# 首先在项目根目录下创建static目录
+				# 接着在settings.py 文件下添加
+
+				STATIC_URL = '/static/'  # 默认已添加，使用静态文件时的前缀
+				STATICFILES_DIRS = (
+				        os.path.join(BASE_DIR,'static'), #行末的逗号不能漏
+				    )
+
+				# 这样在template中就可以导入static目录下的静态文件啦
+				# 例：
+				<script src="/static/jquery-1.12.4.js"></script>
+
+三、Django路由系统
+
+		URL配置(URLconf)就像Django所支撑网站的目录。
+		它的本质是URL模式以及要为该URL模式调用的视图函数之间的映射表；
+		你就是以这种方式告诉Django，对于这个URL调用这段代码，对于那个URL调用那段代码。
+		URL的加载是从配置文件中开始。
+
+		urlpatterns = [
+			url(正则表达式, viev视图, 参数, 别名),
+		]
+
+		urlpatterns = [
+			url(r'index', vievs.index, {'a': "111"}, "INDEX"),
+		]
+
+		- 参数说明
+			- 一个正则表达式字符串
+			- 一个可调用对象，通常为一个视图函数或者一个指定视图函数路径的字符串
+			- 可选的要传递给视图函数的默认参数（字典形式）
+			- 一个可选的name参数
+
+		示例：
+
+			from django.conf.urls import url
+	   
+			from . import views
+			   
+			urlpatterns = [
+			    url(r'^articles/2003/$', views.special_case_2003),
+			    url(r'^articles/([0-9]{4})/$', views.year_archive),
+			    url(r'^articles/([0-9]{4})/([0-9]{2})/$', views.month_archive),
+			    url(r'^articles/([0-9]{4})/([0-9]{2})/([0-9]+)/$', views.article_detail),
+			]
+
+		说明：
+			- 要捕获从URL中的值，用括号括起来，会当作参数传入views视图。
+			- 没有必要添加一个斜线，因为每个URL都有。例如：他^test不是^/test。
+			- 在'r'前面的每个正则表达式字符串中是可选的，但建议写上。它告诉python字符串是“原始”-没有什么字符串应该进行转义
+
+			- 请求示例
+				一个请求 
+				- /articles/2005/03/ 会匹配上面列表中的第三条. Django 会调用函数 views.month_archive(request, '2005', '03').
+				- /articles/2005/3/ 不会匹配上面列表中的任何条目, 因为第三条的月份需要二位数字.
+				- /articles/2003/ 会匹配上第一条而不是第二条，因为匹配是按照从上到下顺序而进行的， Django 会调用函数 views.special_case_2003(request)
+				- /articles/2003 不会匹配上面列表中的任何条目, 因为每个URL应该以 / 结尾.
+				- /articles/2003/03/03/ 会匹配上最后一条. Django 会调用函数 views.article_detail(request, '2003', '03', '03').
+
+
+
+		- 命名组（Named groups）
+			在上面的简单例子中，并没有使用正则表达式分组，在更高级的用法中，很有可能使用正则分组来匹配URL并且将分组值通过参数传递给view函数。
+			在Python的正则表达式中，分组的语法是 (?P<name>pattern), name表示分组名，pattern表示一些匹配正则.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
