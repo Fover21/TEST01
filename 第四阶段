@@ -1,4 +1,6 @@
 
+HTTPRequest与HTTPresponse
+
 一、
 
 1、互联网两台机器之间通行：ip、端口、协议
@@ -22,7 +24,7 @@
 	- 请求和相应的消息都必须遵循一个固定的格式
 
 4、python中Web框架分类
-	- a、收发socket消息，按照HTTP协议解析消息   Web服务程序 wsgiref、gunicorn、uWSGI
+	- a、收发socket消息，按照HTTP协议解析消息   Web服务程序 wsgiref（模块）、gunicorn、uWSGI
 	- b、字符串替换，用来实现动态网页								
 	- c、业务逻辑处理							Web应用程序
 
@@ -479,19 +481,19 @@ class Book(models.Model):
           <input type="submit">
        </form>
     - 改的实时，出版社的内容需要先选定好。需要用模板语言来判断
+    	# 这中情况form表单不指定action他默认会提交当前的页面（这是的页面是点击编辑时的页面）
 	    <form action="/edit_book/?id={{ data.id }}" method="post">
 	        <input type="text" name="title_name" value="{{ data.title }}">
 	        <select name="press_name" id="">
 	            {% for press in data_list %}
 	                {% if data.press == press %}
 	                    <option value="{{ press.id }}" selected>
-	                        {{ press.name }}
 	                    </option>
+	                        {{ press.name }}
 	                    {% else %}
 	                    <option value="{{ press.id }}">
 	                        {{ press.name }}
 	                    </option>
-
 	                {% endif %}
 	            {% endfor %}
 	        </select>
@@ -499,35 +501,87 @@ class Book(models.Model):
 	    </form>
 
 
+五、
+	- 给数据库中已经存在的表添加另外一个字段，ORM不知道如何处理
+		- 1） 输入 1 会让用户自己填写一个默认值（在命令行中）
+		- 2） 输入 2 自己在ORMclass中指定字段自己加默认值（退出命令行）在modules中修改
+				- null = True
+				- default = 默认值
 
 
+1. 多对多关系	
+		作者   <-->  书籍
+		1. 表结构设计
+			1. SQL版
+				-- 创建作者表
+				create table author(
+					id int primary key auto_increment,
+					name varchar(32) not null
+				);
+				
+				-- 创建作者和书的关系表
+				create table author2book(
+					id int primary key auto_increment,
+					author_id int not null,
+					book_id int not null,
+					constraint fk_author foreign key (author_id) references author(id) on delete cascade on update cascade,
+					constraint fk_book foreign key (book_id) references book(id) on delete cascade on update cascade
+				);
 
+			2. ORM版
+				1. 第一版：
+					自己创建第三张表
+				2. 第二版
+					让ORM帮我们创建第三张表
+					models.ManyToManyField()
+				3. 第三版
+					待补充...（ORM进阶操作的时候）			
+	2. 作者的增删改查
+		1. 查询
+			author_obj.books        --> 得到的只是一个关联关系，并不能拿到数据
+			author_obj.books.all()  --> 得到和我这个作者关联的所有书籍对象列表
+		2. 添加
+			1. add()
+			
+		3. 删除
+		
+		4. 编辑
+			1. 模板语言中
+				{% if book in author.books.all %}
+			2. ORM编辑多对多
+				1. 不能直接操作第三张关系表
+				2. 借助ORM给提供的方法
+					1. all()
+					2. add(id1,id2)
+					3. set([id1, id2])
+					4. clear()
+	3. Django模板语言
+		1. for循环
+			1. forloop.last
+				{% if forloop.last %}
+					...
+			2. empty
+				{% for i in x %}
+					...
+				{% empty %}
+					...
+				{% endfor %}
+	4. 上传文件
+		form表单上传文件
+		# 文件的上传
+		def index(request):
+		    print(request.GET)
+		    print(request.POST)
+		    print(request.FILES)
+		    for item in request.FILES:
+		        fileobj = request.FILES.get(item)
+		        f = open('upload/%s' % fileobj.name, 'wb')
+		        item_file = fileobj.chunks()
+		        for line in item_file:
+		            f.write(line)
+		        f.close()
 
+		    return HttpResponse("成功")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+2. 学生管理系统
+	- 老师 和 班级 是多对多的关系
