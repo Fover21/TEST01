@@ -397,7 +397,7 @@
 				- 第二遍请求是提交数据后的POST请求，
 					- form表单中的action为这个编辑页面，
 					- 这个页面后面的参数为第一次get请求得到的数据
-					- 也就是可以得到这个行的id（可以一起使用）一一对应的
+					- 可以通过GET方法来获取URL上的参数的值
 
 					- 这个时候form表单对应的url来urls中找对应的视图函数
 						- 这个视图函数就会执行POST请求的逻辑
@@ -417,7 +417,103 @@
 
 
 	注意：
-		通过GET来获取URL中的值，POST获取表单提交的值。
+		通过GET来获取URL中的值（和请求无关），POST获取表单提交的值。
+
+
+
+
+四、
+
+1、 a标签
+	- href属性
+		- 相对路径
+		- 绝对路径
+	- target = "_blank" 跳转到新页面， 不写默认覆盖自己的页面
+	- 锚点（同网站标签的跳转（#id名））
+
+2、 
+
+# 出版社
+class Press(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=32)
+
+    def __str__(self):  # print的时候测试使用
+        return self.name
+
+
+# 书
+class Book(models.Model):
+    id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=32)
+    # Django1.1默认就是级联删除，2.0必须指定
+    # 可以通过字符串的反射找Press，如果在代码前面就可以直接用，to=关联的表名
+    # 外键字段ORM会给他默认加一个_id (加上_id后他的值就是对应关联表的主键值)
+    press = models.ForeignKey(to='Press', on_delete=models.CASCADE)
+	
+
+- 一对多
+	- 一个出版社对应多本书(外键设置在多的一方)
+		- 书的属性有一个外键为链接出版社的press_id
+
+书籍的增删改查
+	- 增
+
+	- 删
+
+	- 改
+
+	- 查
+
+注意：
+    - 增的时候，出版社就是表中的固定出版社，用一个select标签将数据展示，而不是用户自己填
+    	<form action="/add_book/" method="post">
+          书名：<input type="text" name="book_title">
+          <select name="title_name" id="">
+            {% for press in data %}
+                <option value="{{ press.id }}">
+                    {{ press.name }}
+                </option>
+            {% endfor %}
+          </select>
+          <input type="submit">
+       </form>
+    - 改的实时，出版社的内容需要先选定好。需要用模板语言来判断
+	    <form action="/edit_book/?id={{ data.id }}" method="post">
+	        <input type="text" name="title_name" value="{{ data.title }}">
+	        <select name="press_name" id="">
+	            {% for press in data_list %}
+	                {% if data.press == press %}
+	                    <option value="{{ press.id }}" selected>
+	                        {{ press.name }}
+	                    </option>
+	                    {% else %}
+	                    <option value="{{ press.id }}">
+	                        {{ press.name }}
+	                    </option>
+
+	                {% endif %}
+	            {% endfor %}
+	        </select>
+	        <input type="submit">
+	    </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
