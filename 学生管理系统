@@ -1,0 +1,24 @@
+  学生     教室    教师
+stutent  class  teacher
+
+
+教室：
+	id name	
+
+一个学生一个教室
+一个教室多个学生
+
+学生：
+	id name class teacher
+
+一个教师多个学生
+一个学生多个老师
+
+老师：
+	id name class student
+
+
+学生<->教师	多对多
+学生<->教室  一对多
+教室<->老师 	多对多
+
