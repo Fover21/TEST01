@@ -1,7 +1,4 @@
-
-
-
-#print('登录失败')
+# print('登录失败')
 #     print('登录成功')
 # # # 当前路径
 # # # 系统环境变量
@@ -19,3 +16,9 @@
 # # print(type((1)))
 # # print(type((1,)))
 # # res = Decimal.from_float(12.1)
+
+
+# s = "I love you"
+# print(s.center(18, '*'))
+# print(s.partition('o'))
+# print(s.encode())

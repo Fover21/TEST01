@@ -859,12 +859,13 @@ class Book(models.Model):
 					def xx(request):
 					    d = {"a": 1, "b": 2, "c": 3, "items": "100"}
 					    return render(request, "xx.html", {"data": d})
-					 如上我们在使用render方法渲染一个页面的时候，传的字典d有一个key是items并且还有默认的 d.items() 方法，此时在模板语言中:
+					 如上我们在使用render方法渲染一个页面的时候，传的字典d有一个key是items并且还有默认的 d.items() 
+					 方法，此时在模板语言中:
 
 					{{ data.items }}
 					默认会取d的items key的值。
 
 
 - 细节
-	input data属性 value='是一个-链接的字符串'
+	input data属性 value='是一个“-”链接的字符串'
 
