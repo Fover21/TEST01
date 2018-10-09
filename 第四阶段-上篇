@@ -640,6 +640,7 @@ class Book(models.Model):
 
 						{{ value|default:"nothing"}}
 						如果value没有传值或者值为空的话就显示nothing
+						注：TEMPLATES的OPTIONS可以增加一个选项：string_if_invalid：'找不到'，可以替代default的的作用。
 
 					- length
 						返回值的长度，作用于字符串和列表。
@@ -657,6 +658,14 @@ class Book(models.Model):
 						切片
 
 						{{value|slice:"2:-1"}}
+					- add
+						给变量加参数
+
+						{{ value|add:"2" }}
+						value是数字4，则输出结果为6。
+
+						{{ first|add:second }}
+						如果first是 [1,.2,3] ，second是 [4,5,6] ，那输出结果是 [1,2,3,4,5,6] 。
 
 					- data
 						格式化
@@ -776,12 +785,56 @@ class Book(models.Model):
 							register = template.Library()
 
 							@register.filter()  # 告诉Django的模板语言我现在注册一个自定义的filter
-							def add_str():pass
+							def add_str():pass  # 第一个参数是变量名， 第二个参数为参数（最多一个）
 
 						- 使用：
 							- 重启DJango项目
 							- 在HTML页面中：{% load python文件名 %}
 							- {{ name|add_str:'好人啊' }}
+
+
+
+					- 例子：
+						- 自定义过滤器只是带有一个或两个参数的Python函数:
+
+							变量（输入）的值 - -不一定是一个字符串
+							参数的值 - 这可以有一个默认值，或完全省略
+							例如，在过滤器{{var | foo：“bar”}}中，过滤器foo将传递变量var和参数“bar”。
+
+						- 自定义filter代码文件摆放位置：
+
+							app01/
+							    __init__.py
+							    models.py
+							    templatetags/  # 在app01下面新建一个package package
+							        __init__.py
+							        app01_filters.py  # 建一个存放自定义filter的py文件
+							    views.py
+						
+						- 编写自定义filter
+
+					
+							from django import template
+							register = template.Library()
+
+
+							@register.filter
+							def fill(value, arg):
+							    return value.replace(" ", arg)
+
+
+							@register.filter(name="addSB")
+							def add_sb(value):
+							    return "{} SB".format(value)
+						
+						- 使用自定义filter
+
+							{# 先导入我们自定义filter那个文件 #}
+							{% load app01_filters %}
+
+							{# 使用我们自定义的filter #}
+							{{ somevariable|fill:"__" }}
+							{{ d.name|addSB }}
 
 
 
@@ -837,7 +890,10 @@ class Book(models.Model):
 					- if语句支持 and 、or、==、>、<、!=、<=、>=、in、not in、is、is not判断。
 
 
-			- with
+			- with	（就相当于起了一个别名）
+				- 	{% with p1.dream as dream %}
+						{{ dream }}   # dream 代替p1.dream
+					{% endwith %}
 				- 定义一个中间变量
 					{% with total=business.employees.count %}
 					    {{ total }} employee{{ total|pluralize }}
@@ -846,9 +902,24 @@ class Book(models.Model):
 			- csrf_token
 				- 这个标签用于跨站请求伪造保护。
 				- 在页面的form表单里面写上{% csrf_token %}
-
+					- 用这个后就可以将中间件打开（这样就安全了，知道是我能够收取的）
 			- # 注释
 				- {# ... #}
+
+			- 母版（一个普通的html文件）
+				- 减少代码的重复
+
+				- 母版写好
+					- 不同的地方用以下占位
+					- {{ block contenter(name) }}
+
+						{{ endblock }}
+				- 子文件
+					- {% extends '母版html' %}  # 继承母版
+
+					- {% block contenter(name) %}  # 将母版中的站好位置额contenter填充
+							自己的html文件
+						{% endblock %}
 
 			- 注意事项
 				- Django的模板语言不支持连续判断，即不支持以下写法：
@@ -868,4 +939,9 @@ class Book(models.Model):
 
 - 细节
 	input data属性 value='是一个“-”链接的字符串'
+
+
+
+
+
 

@@ -1,0 +1,201 @@
+回顾：
+	- django有关命令
+		- django安装
+			- pip install -i yuan django==1.11.11
+		- 创建项目
+			- django-admin startproject 项目名
+		通过manage.py执行
+		CD 项目目录下
+		- 创建app
+			- python manager.py startapp appname
+		- 启动项目
+			- python mamager.py runserver
+		- 数据库相关
+			python manager.py makemigrations 记录models的变化，将变更记录记录到对应app下的migrations文件夹下
+			python manager.py migrate 翻译成sql语句，去数据库执行
+
+	- 配置settings.py
+		- 数据库相关
+			- EGNIGE： 引擎
+			- NAME: 数据库名
+			- HOST:IP
+			- PORT：端口号  3306
+			- USER: 用户名
+			- PASSWORD: 密码
+			
+		- 静态文件相关
+			- STATIC_URL = ‘static’   # 别名
+			- STATICFILES_DIRS = [
+				os.path.dirname(BASE_DIR, 'static')
+			]
+
+		- APP
+			- INSTALLED_APPS = [
+				'appname'.apps.AppnameConfig,  # 注册
+			]			
+		- CSRF 中间件
+			- 安全
+
+		- TEMPLATES
+			- ‘DIRS’:[os.path.join(BASE_DIR, 'templates')]
+    - ORM
+    	- Django使用mysql数据库的配置
+    		- 手动创建mysql数据库
+    		- 在settings.py中配置
+    			- DATABASES 
+    				- 可以连接多个数据库
+    		- 告诉django使用pymysql连接数据库
+    			- 在与settings.py文件同级的目录下的__init__.py文件中写
+    			- import pymysql
+    			- pymysql.install_as_MySQldb()
+    		- 在models.py中写类
+    			- 继承models.Model
+    		- 执行命令
+    			- makemigrations
+    			- migrate
+    	- ORM操作
+    		- 查
+    			- 先导入models（用里面的类也就是表名）
+    			- all()   查询所有的对象  queryset  对象列表
+    			- filter(筛选条件)	查询所有满足条件的对象  对象列表
+    			- get(筛选条件)	只能查询有且只能有一个对象，没有或者多个就报错  对象
+    			
+    			- 属性：
+    				- obj.id
+    				- obj.name
+    			- 外键
+    				- obj.外键名	    -> 关联的对象
+    				- obj。外键名_id	-> 数据库中关联对象的id
+    				- obj.外键名.id  -> 相比上一个多了查询操作
+    			- 多对多
+    				- obj.多对多名		-> Django管理的对象 
+    				- obj.多对多名.all() -> 管理的所有对象
+    		- 增加
+    			- create(字段=‘’，字段=‘’)
+    				- 外键
+    					- 外键字段 = 对象
+    					- 外键_id = ‘’
+    				- 多对多
+    					- 多对多名.set([多个数据的id])
+    					- 多对多名.set([多个对象])
+    					- 多对多名.add()
+    		- 删除
+    			- obj.delete()			删除单个对象
+    			- obj.filter.delte()  	删除多个对象
+    		- 编辑
+    			- obj.字段名 = ‘新数据’   boj.save()
+    			- updata(字段名=‘新数据’) 不需要save
+    			- 外键
+    				- obj.外键名 = 对象  		obj.save()
+    				- obj.外键名_id = ‘新id’ obj.save()
+    			- 多对多
+    				- obj.多对多名.set([多个对象])
+    				- obj.多对多名.add()
+
+
+
+与deflate过滤器功能一样
+	- settings
+		- 将datatime对象统一改为固定格式，不需要每个都用data过滤器
+			-1 DATATIME_FORMAT = 'Y-m-d H:i:s'
+			-2 USE_L10N = False
+
+csrf_token （过滤器）
+		- 这个标签用于跨站请求伪造保护。
+		- 在页面的form表单里面写上
+			- 用这个后就可以将中间件打开（这样就安全了，知道是我能够收取的）
+
+母版（一个普通的html文件）
+	- 减少代码的重复
+
+	- 母版写好
+		- 不同的地方用以下占位
+		- {{ block contenter(name) }}
+
+			{{ endblock }}
+	- 子文件
+		- {% extends '母版html' %}  # 继承母版
+
+		- {% block contenter(name) %}  # 将母版中的站好位置额contenter填充
+				自己的html文件
+			{% endblock %}
+
+自定义filter
+	- 自定义过滤器只是带有一个或两个参数的Python函数:
+
+		变量（输入）的值 - -不一定是一个字符串
+		参数的值 - 这可以有一个默认值，或完全省略
+		例如，在过滤器{{var | foo:'bar'}}中，过滤器foo将传递变量var和参数“bar”。
+
+
+	- 创建 (步骤)
+		- 先在app目录下创建一个templatetagspython包（名字必须这个）
+		- 在目录中创建一个py文件
+		- 在py文件中按照固定的格式自定义一个filter（就是一个函数）
+		- 需要先导入 from django import template 
+			# 固定写法，生成一个注册实例对象
+			register = template.Library()
+
+			@register.filter()  # 告诉Django的模板语言我现在注册一个自定义的filter
+			def add_str():pass  # 第一个参数是变量名， 第二个参数为参数（最多一个）
+
+		- 使用：
+			- 重启DJango项目
+			- 在HTML页面中：{% load python文件名 %}
+			- {{ name|add_str:'好人啊' }}
+
+
+		- 例子：
+			- 自定义过滤器只是带有一个或两个参数的Python函数:
+
+				变量（输入）的值 - -不一定是一个字符串
+				参数的值 - 这可以有一个默认值，或完全省略
+				例如，在过滤器{{var | foo：“bar”}}中，过滤器foo将传递变量var和参数“bar”。
+
+			- 自定义filter代码文件摆放位置：
+
+				app01/
+				    __init__.py
+				    models.py
+				    templatetags/  # 在app01下面新建一个package package
+				        __init__.py
+				        app01_filters.py  # 建一个存放自定义filter的py文件
+				    views.py
+			
+			- 编写自定义filter
+
+		
+				from django import template
+				register = template.Library()
+
+
+				@register.filter
+				def fill(value, arg):
+				    return value.replace(" ", arg)
+
+
+				@register.filter(name="addSB")
+				def add_sb(value):
+				    return "{} SB".format(value)
+			
+			- 使用自定义filter
+
+				{# 先导入我们自定义filter那个文件 #}
+				{% load app01_filters %}
+
+				{# 使用我们自定义的filter #}
+				{{ somevariable|fill:"__" }}
+				{{ d.name|addSB }}
+
+
+
+
+
+
+
+
+
+
+
+
+
