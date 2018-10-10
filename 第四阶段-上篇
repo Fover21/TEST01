@@ -836,6 +836,8 @@ class Book(models.Model):
 							{{ somevariable|fill:"__" }}
 							{{ d.name|addSB }}
 
+					- 注意：过滤器可以链接
+						{{ text|escape|linebreaks }} 就是一个常用的过滤器链，它编码文本内容，然后把行打破转成<p> 标签。
 
 
 		- 跟逻辑相关 {% %}
@@ -857,7 +859,9 @@ class Book(models.Model):
 				forloop.revcounter0	当前循环的倒序索引值（从0开始）
 				forloop.first		当前循环是不是第一次循环（布尔值）
 				forloop.last		当前循环是不是最后一次循环（布尔值）
-				forloop.parentloop	本层循环的外层循环
+				forloop.parentloop	本层循环的外层循环（是个字典）
+
+				forloop是一个字典
 
 				- for ... empty
 					<ul>
@@ -903,10 +907,13 @@ class Book(models.Model):
 				- 这个标签用于跨站请求伪造保护。
 				- 在页面的form表单里面写上{% csrf_token %}
 					- 用这个后就可以将中间件打开（这样就安全了，知道是我能够收取的）
+					- 在表单中添加了一个隐藏的input标签
+						- name csrfmiddlewaretoken
+						- value asksdasdas(64位)
 			- # 注释
 				- {# ... #}
 
-			- 母版（一个普通的html文件）
+			- 母版（一个普通的html文件） block extends
 				- 减少代码的重复
 
 				- 母版写好
@@ -920,6 +927,13 @@ class Book(models.Model):
 					- {% block contenter(name) %}  # 将母版中的站好位置额contenter填充
 							自己的html文件
 						{% endblock %}
+
+				- 注意事项：
+					- {% extends '母版html' %}  # 继承母版  必须写在开头
+					- {% extends name %}  name写继承的模板的名字字符串
+					- 自定义的内容写在block中
+					- 定义多个block块，一般要有js css
+
 
 			- 注意事项
 				- Django的模板语言不支持连续判断，即不支持以下写法：
@@ -935,6 +949,112 @@ class Book(models.Model):
 
 					{{ data.items }}
 					默认会取d的items key的值。
+
+
+			- 组件 include
+				- 可以将常用的页面内容如导航条，页尾信息等组件保存在单独的文件中，然后在需要使用的地方按如下语法导入即可。
+					{% include 'navbar.html' %}
+
+			- 静态文件相关（动态拿取STATIC_URL配置的名字）
+				- 
+					{% load static %}
+					<img src="{% static "images/hi.jpg" %}" alt="Hi!" />
+					
+					引用JS文件时使用：
+					{% load static %}
+					<script src="{% static "mytest.js" %}"></script>
+					
+					某个文件多处被用到可以存为一个变量
+					{% load static %}
+					{% static "images/hi.jpg" as myphoto %}
+					<img src="{{ myphoto }}"></img>
+
+				- get_static_prefix
+					{% load static %}
+					<img src="{% get_static_prefix %}images/hi.jpg" alt="Hi!" />
+					
+					或者
+					{% load static %}
+					{% get_static_prefix as STATIC_PREFIX %}
+
+					<img src="{{ STATIC_PREFIX }}images/hi.jpg" alt="Hi!" />
+					<img src="{{ STATIC_PREFIX }}images/hi2.jpg" alt="Hello!" />
+
+			- 自定义simpletag
+				和自定义filter类似，只不过接收更灵活的参数。
+
+				定义注册simple tag
+				@register.simple_tag
+
+				@register.simple_tag(name="plus")
+				def plus(a, b, c):
+				    return "{} + {} + {}".format(a, b, c)
+
+				使用自定义simple tag
+				{% load app01_demo %}
+
+				{# simple tag #}
+				{% plus "1" "2" "abc" %}
+
+			- inclusion_tag
+				- 多用于返回html代码片段
+
+				- 步骤
+					- 在app下创建templatetags的python包
+					- 在包下写py文件 mytags
+					- 编辑文件
+						- from django import template
+						- register = template.Library()
+
+					- 定义函数
+						- 可接受参数
+						- 返回一个字典
+					- 函数加装饰器
+						- @register.inclusion_tag('result.html')
+
+				示例：
+
+					templatetags/my_inclusion.py
+
+					
+						from django import template
+
+						register = template.Library()
+
+
+						@register.inclusion_tag('result.html')
+						def show_results(n):
+						    n = 1 if n < 1 else int(n)
+						    data = ["第{}项".format(i) for i in range(1, n+1)]
+						    return {"data": data}
+				
+					templates/result.html
+
+						<ul>
+						  {% for choice in data %}
+						    <li>{{ choice }}</li>
+						  {% endfor %}
+						</ul>
+					
+					templates/index.html
+						
+						<!DOCTYPE html>
+						<html lang="en">
+						<head>
+						  <meta charset="UTF-8">
+						  <meta http-equiv="x-ua-compatible" content="IE=edge">
+						  <meta name="viewport" content="width=device-width, initial-scale=1">
+						  <title>inclusion_tag test</title>
+						</head>
+						<body>
+
+						{% load my_inclusion %}
+
+						{% show_results 10 %}
+						</body>
+						</html>
+ 
+
 
 
 - 细节
